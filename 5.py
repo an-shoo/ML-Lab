@@ -7,7 +7,11 @@ concepts = np.array(data.iloc[:,:-1])
 target = np.array(data.iloc[:,-1])
 
 def learn(concepts,target):
-    specific_h = concepts[0].copy()
+    specific_h = None
+    for i,h in enumerate(concepts):
+        if target[i] == "yes":
+            specific_h = h.copy()
+            break
     general_h = [['?' for i in range(len(specific_h))] for i in range(len(specific_h))]
     for i,h in enumerate(concepts):
         if target[i] == 'yes':
