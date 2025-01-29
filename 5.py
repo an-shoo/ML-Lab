@@ -1,32 +1,34 @@
 import pandas as pd
+import numpy as np
 
 # 1. Load the playtennis.csv dataset
 data = pd.read_csv('playtennis.csv')
+concepts = np.array(data.iloc[:,:-1])
+target = np.array(data.iloc[:,-1])
 
-# 2. Initialize hypothesis
-def candidate_elimination(data):
-    specific_hypothesis = ['0'] * len(data.columns[:-1])  # Start with the most specific hypothesis
-    general_hypothesis = [['?'] * len(data.columns[:-1])]
-
-    for _, row in data.iterrows():
-        if row['PlayTennis'] == 'Yes':  # Positive example
-            for i in range(len(specific_hypothesis)):
-                if specific_hypothesis[i] == '0':
-                    specific_hypothesis[i] = row[i]
-                elif specific_hypothesis[i] != row[i]:
-                    specific_hypothesis[i] = '?'
-            general_hypothesis = [g for g in general_hypothesis if all(g[i] == '?' or g[i] == row[i] for i in range(len(row) - 1))]
-        else:  # Negative example
-            new_general_hypothesis = []
-            for g in general_hypothesis:
-                for i in range(len(g)):
-                    if g[i] == '?':
-                        for value in set(data.iloc[:, i]) - {row[i]}:
-                            new_general_hypothesis.append(g[:i] + [value] + g[i + 1:])
-            general_hypothesis = new_general_hypothesis
-
-    return specific_hypothesis, general_hypothesis
-
-specific, general = candidate_elimination(data)
-print("Specific Hypothesis:", specific)
-print("General Hypothesis:", general)
+def learn(concepts,target):
+    specific_h = concepts[0].copy()
+    general_h = [['?' for i in range(len(specific_h))] for i in range(len(specific_h))]
+    for i,h in enumerate(concepts):
+        if target[i] == 'yes':
+            print("Positive example")
+            for x in range(len(specific_h)):
+                if h[x] != specific_h[x]:
+                    specific_h[x] = '?'
+                    general_h[x][x] = '?'
+        else:
+            print("Negative example")
+            for x in range(len(specific_h)):
+                if h[x] != specific_h[x]:
+                    general_h[x][x] = specific_h[x]
+                else:
+                    general_h[x][x] = '?'
+        print("Step {}".format(i+1))
+        print(specific_h)
+        print(general_h)
+    
+    general_h = [h for h in general_h if h != ['?' for _ in range(len(specific_h))]]
+    return specific_h, general_h
+final_s, final_g = learn(concept,target)
+print(final_s)
+print(final_g)
